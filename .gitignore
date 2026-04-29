@@ -1,0 +1,14 @@
+# Окружение
+venv/
+.env
+__pycache__/
+*.pyc
+
+# Хранилища и логи
+reference_storage/*
+!reference_storage/.gitkeep
+test_tree/
+log_history.txt
+
+# Специфичное для VS Code
+.vscode/

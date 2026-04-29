@@ -1,0 +1,6 @@
+{
+    "🐞 Баг-репорт": "--- BUG REPORT ---\nSummary: \nSteps:\n1. \nActual:\nExpected:",
+    "📋 Чек-лист": "- [ ] Проверка 1\n- [ ] Проверка 2",
+    "🔑 Аккаунты": "Admin: admin / admin123\nUser: user / user123",
+    "API": "TEST"
+}

@@ -1,0 +1,22 @@
+
+
+- [ ] Проверка 1
+- [ ] Проверка 2
+
+Admin: admin / admin123
+User: user / user123
+
+TEST
+
+--- BUG REPORT ---
+Summary: 
+Steps:
+1. 
+Actual:
+Expected:
+
+- [ ] Проверка 1
+- [ ] Проверка 2
+
+Admin: admin / admin123
+User: user / user123
