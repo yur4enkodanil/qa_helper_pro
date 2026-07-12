@@ -46,7 +46,7 @@
    (После этого в начале строки терминала должна появиться надпись "(venv)")
 
 3. Устанавливаем необходимые библиотеки:
-   pip install streamlit pandas faker opencv-python Pillow
+   pip install streamlit pandas faker opencv-python Pillow requests
 
 --------------------------------------------------------------------------------
 ШАГ 5: ЗАПУСК ПРИЛОЖЕНИЯ

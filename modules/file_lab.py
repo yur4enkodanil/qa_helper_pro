@@ -5,33 +5,11 @@ import secrets
 import random
 import string
 import tkinter as tk
-from tkinter import filedialog
-from utils.helpers import fill_raw_bytes, get_multiplier
-
-# Полная база сигнатур
-MAGIC_BYTES = {
-    'docx': b'\x50\x4B\x03\x04', 'xlsx': b'\x50\x4B\x03\x04', 'pptx': b'\x50\x4B\x03\x04',
-    'pdf': b'%PDF-1.4\n', 'xls': b'\xD0\xCF\x11\xE0', 'doc': b'\xD0\xCF\x11\xE0',
-    'ppt': b'\xD0\xCF\x11\xE0', 'txt': b'', 'csv': b'',
-    'png': b'\x89PNG\r\n\x1a\n', 'jpg': b'\xff\xd8\xff\xe0', 'jpeg': b'\xff\xd8\xff\xe0',
-    'bmp': b'BM', 'gif': b'GIF89a', 'tif': b'II*\x00', 'tiff': b'II*\x00', 'svg': b'<?xml',
-    'mp4': b'\x00\x00\x00\x18ftyp', 'ogg': b'OggS', 'ogv': b'OggS', 'webm': b'\x1aE\xdf\xa3',
-    'zip': b'\x50\x4B\x03\x04', '7z': b'7z\xbc\xaf\x27\x1c', 'rar': b'Rar!\x1a\x07',
-    'grd': b'DSAA', 'shp': b'\x00\x00\x27\x0a', 'las': b'~VERSION', 'dlis': b'\x00\x00\x00\x50',
-    'seg-y': b'\x00\x00\x00\x00', 'lis': b'\x00\x00', 'geo-tiff': b'II*\x00'
-}
-
-def open_picker(mode="folder"):
-    """Универсальный вызов проводника для файлов и папок."""
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
-    if mode == "folder":
-        res = filedialog.askdirectory(master=root)
-    else:
-        res = filedialog.askopenfilename(master=root)
-    root.destroy()
-    return res
+from utils.helpers import get_multiplier, fill_raw_bytes
+from modules.tree_lab import render_tree_lab
+from utils.ui_helpers import open_file_picker
+from utils.file_content import VALID_FILE_CONTENT
+from utils.file_formats import MAGIC_BYTES, ALL_EXTENSIONS
 
 def render_file_lab():
     # Создаем папки если их нет
@@ -39,16 +17,17 @@ def render_file_lab():
         if not os.path.exists(d): os.makedirs(d)
 
     # Инициализация счетчиков для обновления виджетов (решает проблему отображения пути)
+    # Эти счетчики нужны для хака с обновлением text_input после выбора файла через диалог
     if 'upd_gen' not in st.session_state: st.session_state.upd_gen = 0
     if 'upd_repl_f' not in st.session_state: st.session_state.upd_repl_f = 0
     if 'upd_repl_d' not in st.session_state: st.session_state.upd_repl_d = 0
-
+    
+    # Возвращаем структуру с тремя вкладками для объединения функционала
     tab1, tab2, tab3 = st.tabs(["📄 Одиночные (Генерация)", "🌳 Дерево папок", "👯 Тиражирование"])
 
     with tab1:
         render_generator_ui()
     with tab2:
-        from modules.tree_lab import render_tree_lab
         render_tree_lab()
     with tab3:
         render_replicator_ui()
@@ -63,7 +42,7 @@ def render_generator_ui():
         with c2:
             st.write("")
             if st.button("📂 Обзор...", key="btn_gen_path"):
-                res = open_picker("folder")
+                res = open_file_picker("folder")
                 if res:
                     st.session_state['file_gen_path'] = res
                     st.session_state.upd_gen += 1
@@ -77,14 +56,30 @@ def render_generator_ui():
         # Важно: обновляем сохраненный путь при ручном вводе
         st.session_state['file_gen_path'] = current_path
 
-        all_formats = sorted(list(MAGIC_BYTES.keys()) + ["bin", "dat", "exe"])
         c1, c2, c3, c4 = st.columns(4)
-        ext = c1.selectbox("Формат:", all_formats, index=all_formats.index('bin') if 'bin' in all_formats else 0)
+        ext = c1.selectbox("Формат:", ALL_EXTENSIONS, index=ALL_EXTENSIONS.index('bin') if 'bin' in ALL_EXTENSIONS else 0)
         unit = c2.selectbox("Вес в:", ["MB", "GB", "KB"])
         size = c3.number_input("Размер:", min_value=0.1, value=1.0)
         count = c4.number_input("Кол-во:", min_value=1, value=1)
         
-        fill_type = st.radio("Тип заполнения:", ["Пустой (NULL-байты)", "Текстовый (Случайные символы)"], horizontal=True)
+        fill_type = st.radio(
+            "Тип заполнения:", 
+            [
+                "Валидное содержимое (по шаблону)",
+                "Случайные байты (Бинарный мусор)", 
+                "Текстовый (Читаемые символы)", 
+                "Пустой (NULL-байты)"
+            ], 
+            horizontal=False
+        )
+
+        # Показываем подсказку с доступными форматами, если выбран режим генерации по шаблону
+        if "Валидное содержимое" in fill_type:
+            with st.expander("ℹ️ Поддерживаемые форматы для валидного содержимого"):
+                # Получаем список ключей из словаря с шаблонами
+                supported_formats = sorted(list(VALID_FILE_CONTENT.keys()))
+                st.info(f"**Доступные форматы:**\n\n`{', '.join(supported_formats)}`")
+                st.caption("Для остальных форматов будет создан файл с корректным расширением, но без валидного содержимого (0 байт).")
 
     if st.button("🚀 Начать генерацию", use_container_width=True):
         target_dir = st.session_state['file_gen_path']
@@ -96,21 +91,37 @@ def render_generator_ui():
         for i in range(int(count)):
             f_path = os.path.join(target_dir, f"test_{secrets.token_hex(4)}.{ext}")
             with open(f_path, "wb") as f:
-                h = MAGIC_BYTES.get(ext, b'')
-                f.write(h)
-                rem = max(0, t_bytes - len(h))
-                
-                if "Пустой" in fill_type:
-                    fill_raw_bytes(f, rem)
+                if "Валидное содержимое" in fill_type:
+                    # Используем валидный шаблон
+                    template_content = VALID_FILE_CONTENT.get(ext, b'')
+                    f.write(template_content)
+                    # Добиваем до нужного размера, если требуется
+                    remaining_bytes = max(0, t_bytes - len(template_content))
+                    if remaining_bytes > 0:
+                        fill_raw_bytes(f, remaining_bytes)
                 else:
-                    # Твоя оригинальная логика заполнения текстом
-                    chunk_size = 1024 * 1024
-                    written = 0
-                    chars = (string.ascii_letters + string.digits).encode('ascii')
-                    while written < rem:
-                        curr = min(chunk_size, rem - written)
-                        f.write(bytes([random.choice(chars) for _ in range(curr)]))
-                        written += curr
+                    # Старая логика для остальных типов
+                    h = MAGIC_BYTES.get(ext, b'')
+                    f.write(h)
+                    rem = max(0, t_bytes - len(h))
+                    if "Случайные байты" in fill_type:
+                        fill_raw_bytes(f, rem)
+                    elif "Текстовый" in fill_type:
+                        chunk_size = 1024 * 1024
+                        written = 0
+                        chars = (string.ascii_letters + string.digits + " \n\t.,;()[]{}").encode('utf-8')
+                        while written < rem:
+                            curr = min(chunk_size, rem - written)
+                            f.write(bytes(random.choices(chars, k=curr)))
+                            written += curr
+                    else: # "Пустой (NULL-байты)"
+                        chunk_size = 1024 * 1024
+                        null_chunk = b'\x00' * chunk_size
+                        written = 0
+                        while written < rem:
+                            bytes_to_write = min(chunk_size, rem - written)
+                            f.write(null_chunk[:bytes_to_write])
+                            written += bytes_to_write
             pb.progress((i + 1) / count)
         st.success(f"Готово! {count} файлов создано в {target_dir}")
 
@@ -123,7 +134,7 @@ def render_replicator_ui():
         with cf2:
             st.write("")
             if st.button("📂 Выбрать файл...", key="btn_repl_f"):
-                res = open_picker("file")
+                res = open_file_picker("file")
                 if res:
                     st.session_state['repl_file'] = res
                     st.session_state.upd_repl_f += 1
@@ -139,7 +150,7 @@ def render_replicator_ui():
         with cd2:
             st.write("")
             if st.button("📂 Куда копировать...", key="btn_repl_d"):
-                res = open_picker("folder")
+                res = open_file_picker("folder")
                 if res:
                     st.session_state['repl_dest'] = res
                     st.session_state.upd_repl_d += 1

@@ -1,8 +1,7 @@
 import streamlit as st
 import os
 import hashlib
-import tkinter as tk
-from tkinter import filedialog
+from utils.ui_helpers import open_file_picker
 
 def get_file_hash(file_path, algo="sha256"):
     """Чтение файла по чанкам для поддержки гигантских файлов."""
@@ -29,11 +28,8 @@ def render_integrity_lab():
         with col_b:
             st.write("")
             if st.button("📂 Обзор...", key="hash_browse"):
-                root = tk.Tk()
-                root.withdraw()
-                root.attributes('-topmost', True) # Теперь здесь нет лишнего текста
-                selected_file = filedialog.askopenfilename(master=root)
-                root.destroy()
+                # Используем централизованную функцию для выбора файла
+                selected_file = open_file_picker("file")
                 if selected_file:
                     st.session_state['hash_path_state'] = selected_file
                     st.session_state.hash_upd += 1  # Смена ключа для обновления виджета

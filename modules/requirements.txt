@@ -1,0 +1,6 @@
+streamlit
+pandas
+faker
+opencv-python
+Pillow
+requests

@@ -1,0 +1,135 @@
+[
+    {
+        "ru": "ℹ️ О программе",
+        "en": "ℹ️ About",
+        "desc_key": "about_module_about",
+        "mod": "about_lab",
+        "func": "render_about_lab"
+    },
+    {
+        "ru": "📊 Матрица тестов",
+        "en": "📊 Test Matrix",
+        "desc_key": "about_module_matrix",
+        "mod": "matrix_lab",
+        "func": "render_matrix_lab"
+    },
+    {
+        "ru": "📸 Сравнение скриншотов",
+        "en": "📸 Screenshot Diff",
+        "desc_key": "about_module_screenshot",
+        "mod": "visual_diff_lab",
+        "func": "render_visual_diff_lab"
+    },
+    {
+        "ru": "📁 Файловый цех",
+        "en": "📁 File Factory",
+        "desc_key": "about_module_file_lab",
+        "mod": "file_lab",
+        "func": "render_file_lab"
+    },
+    {
+        "ru": "🧪 Генератор данных",
+        "en": "🧪 Data Generator",
+        "desc_key": "about_module_data_gen",
+        "mod": "data_generator",
+        "func": "render_data_generator"
+    },
+    {
+        "ru": "💀 Негативные сценарии (beta)",
+        "en": "💀 Negative Scenarios (beta)",
+        "desc_key": "about_module_negative",
+        "mod": "negative_lab",
+        "func": "render_negative_lab"
+    },
+    {
+        "ru": "🖥️ Эмулятор экранов",
+        "en": "🖥️ Viewport Emulator",
+        "desc_key": "about_module_emulator",
+        "mod": "viewport_lab",
+        "func": "render_viewport_lab"
+    },
+    {
+        "ru": "🔗 Анализатор ссылок",
+        "en": "🔗 Link Analyzer",
+        "desc_key": "about_module_links",
+        "mod": "link_lab",
+        "func": "render_link_lab"
+    },
+    {
+        "ru": "🕹️ Повторитель запросов",
+        "en": "🕹️ Request Repeater",
+        "desc_key": "about_module_repeater",
+        "mod": "repeater_lab",
+        "func": "render_repeater_lab"
+    },
+    {
+        "ru": "🧬 Base64 Кодер",
+        "en": "🧬 Base64 Coder",
+        "desc_key": "about_module_base64",
+        "mod": "base64_lab",
+        "func": "render_base64_lab"
+    },
+    {
+        "ru": "📜 Анализатор логов",
+        "en": "📜 Log Analyzer",
+        "desc_key": "about_module_log_analyzer",
+        "mod": "log_analyzer_lab",
+        "func": "render_log_analyzer_lab"
+    },
+    {
+        "ru": "📡 API Клиент",
+        "en": "📡 API Client",
+        "desc_key": "about_module_api_client",
+        "mod": "api_client_lab",
+        "func": "render_api_client_lab"
+    },
+    {
+        "ru": "🧠 Тест-дизайн",
+        "en": "🧠 Test Design",
+        "desc_key": "about_module_test_design",
+        "mod": "logic_lab",
+        "func": "render_logic_lab"
+    },
+    {
+        "ru": "📦 JSON Lab",
+        "en": "📦 JSON Lab",
+        "desc_key": "about_module_json",
+        "mod": "json_lab",
+        "func": "render_json_lab"
+    },
+    {
+        "ru": "🧮 Сравнение текста",
+        "en": "🧮 Text Diff",
+        "desc_key": "about_module_diff",
+        "mod": "diff_lab",
+        "func": "render_diff_lab"
+    },
+    {
+        "ru": "🛡️ Проверить хеш",
+        "en": "🛡️ Hash Checker",
+        "desc_key": "about_module_hash",
+        "mod": "integrity_lab",
+        "func": "render_integrity_lab"
+    },
+    {
+        "ru": "👁️ Визуальная проверка",
+        "en": "👁️ Visual Check",
+        "desc_key": "about_module_visual",
+        "mod": "visual_lab",
+        "func": "render_visual_lab"
+    },
+    {
+        "ru": "📝 Заметки",
+        "en": "📝 Notes",
+        "desc_key": "about_module_notes",
+        "mod": "notes_lab",
+        "func": "render_notes_lab"
+    },
+    {
+        "ru": "🪲 Журнал ошибок",
+        "en": "🪲 Error Log",
+        "desc_key": "about_module_logs",
+        "mod": "log_viewer",
+        "func": "render_log_viewer"
+    }
+]

@@ -46,10 +46,6 @@ def render_diff_lab():
                 except:
                     st.warning("Ошибка парсинга JSON, сравниваю как текст.")
 
-            # Сравниваем строки
-            diff = difflib.unified_diff(lines_a, lines_b, n=1000, lineterm='')
-            diff_list = list(diff)[2:] # Пропускаем заголовки --- / +++
-
             st.write("### Результат сравнения:")
             
             html_output = []

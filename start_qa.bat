@@ -1,12 +1,14 @@
 @echo off
 setlocal enabledelayedexpansion
 
+set "LOG_FILE=%~dp0qa_helper_pro.log"
+
 :: Настройка интерфейса
 title QA Helper Pro - Запуск
 color 0B
-echo ======================================================
-echo           QA HELPER PRO - СИСТЕМА ЗАПУСКА
-echo ======================================================
+echo ====================================================== >> "%LOG_FILE%"
+echo           QA HELPER PRO - STARTUP SYSTEM >> "%LOG_FILE%"
+echo ====================================================== >> "%LOG_FILE%"
 
 set "ROOT_DIR=%~dp0"
 set "VENV_DIR=%ROOT_DIR%venv"
@@ -16,44 +18,45 @@ set "GUIDE_FILE=УСТАНОВКА_QA_HELPER.txt"
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     color 0C
-    echo [ОШИБКА] Python не найден в вашей системе.
-    echo ------------------------------------------------------
-    echo ПРИМЕНИТЕ РУЧНУЮ УСТАНОВКУ ПО ГАЙДУ:
-    echo --^> %GUIDE_FILE%
-    echo ------------------------------------------------------
+    echo [ERROR] Python not found in your system. >> "%LOG_FILE%"
+    echo ------------------------------------------------------ >> "%LOG_FILE%"
+    echo PLEASE INSTALL PYTHON MANUALLY USING THE GUIDE: >> "%LOG_FILE%"
+    echo --^> %GUIDE_FILE% >> "%LOG_FILE%"
+    echo ------------------------------------------------------ >> "%LOG_FILE%"
     goto tail
 )
 
 :: 2. СОЗДАНИЕ VENV (если еще нет)
 if not exist "%VENV_DIR%" (
-    echo [1/3] Создание виртуального окружения...
+    echo [1/3] Creating virtual environment... >> "%LOG_FILE%"
     python -m venv "%VENV_DIR%"
     if %errorlevel% neq 0 (
         color 0C
-        echo [ОШИБКА] Не удалось создать venv.
-        echo Попробуйте создать его вручную, как написано в:
-        echo --^> %GUIDE_FILE%
+        echo [ERROR] Failed to create venv. >> "%LOG_FILE%"
+        echo Please try to create it manually as described in: >> "%LOG_FILE%"
+        echo --^> %GUIDE_FILE% >> "%LOG_FILE%"
         goto tail
     )
 )
 
 :: 3. УСТАНОВКА БИБЛИОТЕК
-echo [2/3] Проверка и установка библиотек...
-"%VENV_DIR%\Scripts\python.exe" -m pip install streamlit pandas faker opencv-python Pillow
+echo [2/3] Checking and installing libraries... >> "%LOG_FILE%"
+:: Используем requirements.txt для большей гибкости
+"%VENV_DIR%\Scripts\python.exe" -m pip install -r "%ROOT_DIR%requirements.txt" >> "%LOG_FILE%" 2>&1
 if %errorlevel% neq 0 (
     color 0E
-    echo [ПРЕДУПРЕЖДЕНИЕ] Не удалось автоматически поставить библиотеки.
-    echo Возможно, у вас нет интернета или доступ заблокирован.
-    echo.
-    echo Если программа не запустится, установите их сами по гайду:
-    echo --^> %GUIDE_FILE%
-    echo.
+    echo [WARNING] Failed to install libraries automatically. >> "%LOG_FILE%"
+    echo This might be due to no internet connection or network restrictions. >> "%LOG_FILE%"
+    echo. >> "%LOG_FILE%"
+    echo If the application fails to start, please install them manually: >> "%LOG_FILE%"
+    echo --^> %GUIDE_FILE% >> "%LOG_FILE%"
+    echo. >> "%LOG_FILE%"
     timeout /t 5
 )
 
 :: 4. ЗАПУСК
-echo [3/3] Запуск приложения...
-echo ------------------------------------------------------
+echo [3/3] Starting application... >> "%LOG_FILE%"
+echo ------------------------------------------------------ >> "%LOG_FILE%"
 start "" "%VENV_DIR%\Scripts\streamlit.exe" run "%ROOT_DIR%main.py" --server.port 8501
 
 if %errorlevel% neq 0 (
