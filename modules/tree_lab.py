@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import random
+from modules.i18n import get_text
 from utils.helpers import fill_raw_bytes, get_multiplier
 from utils.ui_helpers import open_file_picker
 from utils.file_formats import ALL_EXTENSIONS, MAGIC_BYTES
@@ -8,13 +9,10 @@ from utils.file_content import VALID_FILE_CONTENT
 
 
 def render_tree_lab():
-    lang = st.session_state.get("lang", "RU")
+    t = get_text
     logger = st.session_state.get("logger")
-    st.subheader(
-        "🌳 Генератор сложных структур"
-        if lang == "RU"
-        else "🌳 Complex Structure Generator"
-    )
+    st.subheader(t("tree_lab_header"))
+    st.warning(t("file_lab_tkinter_warning"), icon="⚠️")
 
     # --- БЛОК ФИКСА ПУТИ ---
     if "tree_upd" not in st.session_state:
@@ -27,9 +25,7 @@ def render_tree_lab():
 
         with col_b:
             st.write("")
-            if st.button(
-                "📂 Обзор..." if lang == "RU" else "📂 Browse...", key="tree_browse"
-            ):
+            if st.button(t("file_gen_browse_button"), key="tree_browse"):
                 selected_dir = open_file_picker("folder")
                 if selected_dir: 
                     st.session_state["tree_path_state"] = selected_dir
@@ -41,7 +37,7 @@ def render_tree_lab():
         with col_p:
             # Динамический ключ заставляет Streamlit обновить значение в поле
             path_tree = st.text_input(
-                "Путь для дерева:" if lang == "RU" else "Tree Path:",
+                t("tree_lab_path"),
                 value=st.session_state["tree_path_state"],
                 key=f"tree_input_{st.session_state.tree_upd}",
             )
@@ -51,52 +47,36 @@ def render_tree_lab():
         c1, c2, c3 = st.columns([1, 1, 2])
         with c1:
             unit = st.selectbox(
-                "Вес в:" if lang == "RU" else "Weight in:",
+                t("file_gen_weight_in"),
                 ["MB", "GB", "KB"],
                 key="tree_unit",
             )
         with c2:
             min_v = st.number_input(
-                "Мин:" if lang == "RU" else "Min:", value=1.0, key="tree_min"
+                t("tree_lab_min_size"), value=1.0, key="tree_min"
             )
         with c3:
             max_v = st.number_input(
-                "Макс:" if lang == "RU" else "Max:", value=2.0, key="tree_max"
+                t("tree_lab_max_size"), value=2.0, key="tree_max"
             )
 
     # --- ОСТАЛЬНАЯ ЛОГИКА ---
     use_all = st.checkbox(
-        "🔓 Все доступные форматы" if lang == "RU" else "🔓 All available formats",
+        t("tree_lab_all_formats"),
         value=False,
-        help=(
-            "Выбрать сразу все расширения из списка"
-            if lang == "RU"
-            else "Select all extensions from the list"
-        ),
+        help=t("tree_lab_all_formats_help"),
     )
 
     with st.expander(
-        (
-            "⚙️ Настройка форматов и вложенности"
-            if lang == "RU"
-            else "⚙️ Formats and Nesting Settings"
-        ),
+        t("tree_lab_settings_expander"),
         expanded=True,
     ):
         selected_exts = []
         if use_all:
             selected_exts = ALL_EXTENSIONS
-            st.info(
-                f"Выбрано форматов: {len(ALL_EXTENSIONS)}"
-                if lang == "RU"
-                else f"Selected formats: {len(ALL_EXTENSIONS)}"
-            )
+            st.info(t("tree_lab_formats_selected").format(count=len(ALL_EXTENSIONS)))
         else:
-            st.write(
-                "Выберите нужные расширения (сетка):"
-                if lang == "RU"
-                else "Select required extensions (grid):"
-            )
+            st.write(t("tree_lab_select_extensions"))
             cols = st.columns(6)
             for i, ext in enumerate(ALL_EXTENSIONS):
                 with cols[i % 6]:
@@ -107,34 +87,30 @@ def render_tree_lab():
         st.divider()
         ca, cb = st.columns(2)
         f_count = ca.number_input(
-            "Кол-во папок:" if lang == "RU" else "Folders count:",
+            t("tree_lab_folders_count"),
             min_value=1,
             max_value=500,
             value=5,
         )
         files_count = cb.number_input(
-            "Кол-во файлов:" if lang == "RU" else "Files count:",
+            t("tree_lab_files_count"),
             min_value=1,
             max_value=5000,
             value=20,
         )
         
         fill_type_tree = st.radio(
-            "Тип заполнения файлов:",
-            ["Валидное содержимое (по шаблону)", "Случайные байты (Бинарный мусор)"],
+            t("file_gen_fill_type"),
+            [t("file_gen_fill_valid"), t("file_gen_fill_random")],
             horizontal=True, key="tree_fill_type"
         )
 
     if st.button(
-        "🚀 Вырастить дерево" if lang == "RU" else "🚀 Grow Tree",
-        use_container_width=True,
+        t("tree_lab_start_button"),
+        width='stretch',
     ):
         if not selected_exts:
-            st.error(
-                "Выберите хотя бы один формат!"
-                if lang == "RU"
-                else "Select at least one format!"
-            )
+            st.error(t("tree_lab_error_no_formats"))
             return
 
         if logger:
@@ -142,9 +118,7 @@ def render_tree_lab():
 
         progress_bar = st.progress(
             0,
-            text=(
-                "Подготовка структуры..." if lang == "RU" else "Preparing structure..."
-            ),
+            text=t("tree_lab_progress_prepare"),
         )
         try:
             target_bytes = int(random.uniform(min_v, max_v) * get_multiplier(unit))
@@ -167,7 +141,7 @@ def render_tree_lab():
                 fp = os.path.join(folder, f"file_{i+1}.{ext}")
 
                 with open(fp, "wb") as f:
-                    if "Валидное" in fill_type_tree:
+                    if fill_type_tree == t("file_gen_fill_valid"):
                         template_content = VALID_FILE_CONTENT.get(ext, b'')
                         f.write(template_content)
                         remaining_bytes = max(0, bytes_per_file - len(template_content))
@@ -179,21 +153,10 @@ def render_tree_lab():
                         remaining_bytes = max(0, bytes_per_file - len(header))
                         fill_raw_bytes(f, remaining_bytes)
                 pct = int(((i + 1) / files_count) * 100)
-                progress_bar.progress(
-                    pct,
-                    text=(
-                        f"Создание файлов: {i+1}/{files_count}"
-                        if lang == "RU"
-                        else f"Creating files: {i+1}/{files_count}"
-                    ),
-                )
+                progress_bar.progress(pct, text=t("tree_lab_progress_creating").format(current=i+1, total=files_count))
 
-            st.success(
-                f"✅ Структура успешно создана в {path_tree}!"
-                if lang == "RU"
-                else f"✅ Structure successfully created in {path_tree}!"
-            )
+            st.success(t("tree_lab_success").format(path=path_tree))
             st.balloons()
 
         except Exception as e:
-            st.error(f"Ошибка: {e}" if lang == "RU" else f"Error: {e}")
+            st.error(f"{t('tree_lab_error_generic')}: {e}")

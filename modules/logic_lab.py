@@ -15,7 +15,7 @@ def render_logic_lab():
         min_v = col_l.number_input("Минимум (Min):", value=0)
         max_v = col_r.number_input("Максимум (Max):", value=100)
     
-    if st.button("📊 Рассчитать точки", use_container_width=True):
+    if st.button("📊 Рассчитать точки", width='stretch'):
         pts = calculate_bva(min_v, max_v)
         
         st.write("### Результат:")

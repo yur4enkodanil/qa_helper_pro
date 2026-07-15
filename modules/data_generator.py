@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import random
 from faker import Faker
+from modules.i18n import get_text
 
 # Инициализируем Faker с русской локализацией
 fake = Faker(['ru_RU'])
@@ -41,79 +42,80 @@ def generate_snils():
     return f"{''.join(map(str, base_digits))}{control:02d}"
 
 # Полный список доступных полей, разбитый по категориям для логики генерации
+# Ключи теперь language-agnostic для поддержки i18n
 DATA_MAPPING = {
-    "ФИО": fake.name,
-    "Телефон": fake.phone_number,
-    "Email": fake.email,
-    "Дата рождения": lambda: fake.date_of_birth(minimum_age=18, maximum_age=70).strftime('%Y-%m-%d'),
-    "Адрес": fake.address,
-    "Компания": fake.company,
-    "Профессия": fake.job,
-    "Страна/Город": lambda: f"{fake.country()}, {fake.city()}",
-    "IPv4 адрес": fake.ipv4,
-    "UUID v4": fake.uuid4,
-    "User Agent": fake.user_agent,
-    "MAC адрес": fake.mac_address,
-    "Номер карты": fake.credit_card_number,
-    "IBAN": fake.iban,
-    "HEX Цвет": fake.hex_color,
-    "Текст (Sentence)": fake.sentence,
-    # Новые поля для расширения
-    "ИНН": generate_inn,
-    "СНИЛС": generate_snils,
-    "Пароль": fake.password,
-    "Логин": fake.user_name,
-    "Координаты": lambda: f"{fake.latitude()}, {fake.longitude()}"
+    "full_name": {"func": fake.name, "category": "personal"},
+    "phone": {"func": fake.phone_number, "category": "personal"},
+    "email": {"func": fake.email, "category": "personal"},
+    "birthdate": {"func": lambda: fake.date_of_birth(minimum_age=18, maximum_age=70).strftime('%Y-%m-%d'), "category": "personal"},
+    "inn": {"func": generate_inn, "category": "personal"},
+    "snils": {"func": generate_snils, "category": "personal"},
+    "address": {"func": fake.address, "category": "location"},
+    "company": {"func": fake.company, "category": "location"},
+    "job": {"func": fake.job, "category": "location"},
+    "country_city": {"func": lambda: f"{fake.country()}, {fake.city()}", "category": "location"},
+    "coordinates": {"func": lambda: f"{fake.latitude()}, {fake.longitude()}", "category": "location"},
+    "ipv4": {"func": fake.ipv4, "category": "tech"},
+    "uuid4": {"func": fake.uuid4, "category": "tech"},
+    "user_agent": {"func": fake.user_agent, "category": "tech"},
+    "mac_address": {"func": fake.mac_address, "category": "tech"},
+    "login": {"func": fake.user_name, "category": "tech"},
+    "password": {"func": fake.password, "category": "tech"},
+    "card_number": {"func": fake.credit_card_number, "category": "finance"},
+    "iban": {"func": fake.iban, "category": "finance"},
+    "hex_color": {"func": fake.hex_color, "category": "finance"},
+    "sentence": {"func": fake.sentence, "category": "finance"},
 }
 
 def render_data_generator():
-    st.subheader("🧪 Генератор тестовых данных")
+    t = get_text
+    st.subheader(t("data_gen_header"))
 
     # Организуем выбор полей в колонки, как на твоем скриншоте
-    with st.expander("⚙️ Выбор полей для генерации", expanded=True):
+    with st.expander(t("data_gen_fields_expander"), expanded=True):
         col1, col2, col3, col4 = st.columns(4)
-        
+        cols_map = {"personal": col1, "location": col2, "tech": col3, "finance": col4}
+        cats_rendered = set()
+
         selected_fields = []
-        
-        with col1:
-            st.markdown("**Личные данные**")
-            for f in ["ФИО", "Телефон", "Email", "Дата рождения", "ИНН", "СНИЛС"]:
-                if st.checkbox(f, key=f"gen_{f}"): selected_fields.append(f)
-        
-        with col2:
-            st.markdown("**Локация/Работа**")
-            for f in ["Адрес", "Компания", "Профессия", "Страна/Город", "Координаты"]:
-                if st.checkbox(f, key=f"gen_{f}"): selected_fields.append(f)
-                
-        with col3:
-            st.markdown("**IT/Технические**")
-            for f in ["IPv4 адрес", "UUID v4", "User Agent", "MAC адрес", "Логин", "Пароль"]:
-                if st.checkbox(f, key=f"gen_{f}"): selected_fields.append(f)
-                
-        with col4:
-            st.markdown("**Финансы/Прочее**")
-            for f in ["Номер карты", "IBAN", "HEX Цвет", "Текст (Sentence)"]:
-                if st.checkbox(f, key=f"gen_{f}"): selected_fields.append(f)
+
+        for key, details in DATA_MAPPING.items():
+            category = details["category"]
+            column = cols_map[category]
+            if category not in cats_rendered:
+                with column:
+                    st.markdown(f"**{t(f'data_gen_cat_{category}')}**")
+                cats_rendered.add(category)
+            
+            with column:
+                if st.checkbox(t(f"data_gen_field_{key}"), key=f"gen_{key}"):
+                    selected_fields.append(key)
 
     # Настройки количества и формата
     with st.container(border=True):
         c_count, c_form = st.columns(2)
-        num_rows = c_count.number_input("Количество строк:", min_value=1, max_value=5000, value=10)
-        out_format = c_form.selectbox("Формат:", ["Таблица", "JSON", "CSV"])
+        num_rows = c_count.number_input(t("data_gen_rows_label"), min_value=1, max_value=5000, value=10)
+        out_format = c_form.selectbox(t("data_gen_format_label"), [t("data_gen_format_table"), "JSON", "CSV"])
 
-    if st.button("🚀 Сгенерировать данные", use_container_width=True):
+    if st.button(t("data_gen_button_generate"), width='stretch'):
         if not selected_fields:
-            st.error("Выберите хотя бы одно поле!")
+            st.error(t("data_gen_error_no_fields"))
             return
 
-        data = []
-        for _ in range(num_rows):
-            row = {field: DATA_MAPPING[field]() if callable(DATA_MAPPING[field]) else DATA_MAPPING[field] for field in selected_fields}
-            data.append(row)
-        
-        df = pd.DataFrame(data)
+        with st.spinner(t("data_gen_spinner")):
+            data = []
+            for _ in range(num_rows):
+                row = {}
+                for field_key in selected_fields:
+                    # Получаем отображаемое имя для колонки
+                    display_name = t(f"data_gen_field_{field_key}")
+                    # Вызываем функцию генерации
+                    row[display_name] = DATA_MAPPING[field_key]["func"]()
+                data.append(row)
+            
+            df = pd.DataFrame(data)
 
-        if out_format == "Таблица":
+        if out_format == t("data_gen_format_table"):
             st.dataframe(df, use_container_width=True)
         elif out_format == "JSON":
             st.code(df.to_json(orient="records", force_ascii=False, indent=4), language="json")
@@ -122,7 +124,7 @@ def render_data_generator():
         
         # Кнопка скачивания CSV всегда полезна
         st.download_button(
-            "📥 Скачать результат (CSV)",
+            t("data_gen_button_download"),
             data=df.to_csv(index=False).encode('utf-8-sig'),
             file_name="test_data.csv",
             mime="text/csv"

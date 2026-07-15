@@ -99,7 +99,7 @@ def render_notes_lab():
             if lang == "RU"
             else "💾 Save all template changes"
         )
-        if st.button(btn_save, use_container_width=True):
+        if st.button(btn_save, width='stretch'):
             save_templates(updated_templates)
             if logger:
                 logger(
@@ -126,7 +126,7 @@ def render_notes_lab():
         )
         if st.button(
             "➕ Создать файл" if lang == "RU" else "➕ Create file",
-            use_container_width=True,
+            width='stretch',
         ):
             if new_name:
                 with open(
@@ -150,7 +150,7 @@ def render_notes_lab():
         # Располагаем кнопки в ряд по 3-4 штуки
         cols = st.columns(min(len(templates), 4) if templates else 1)
         for idx, (label, text) in enumerate(templates.items()):
-            if cols[idx % len(cols)].button(label, use_container_width=True):
+            if cols[idx % len(cols)].button(label, width='stretch'):
                 st.session_state[state_key] += f"\n\n{text}"
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(st.session_state[state_key])

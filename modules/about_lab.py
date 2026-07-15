@@ -23,7 +23,10 @@ def render_about_lab():
         * **💀 Негативные сценарии:** Библиотека хаоса для проверки безопасности (XSS, SQLi, Null-байты) и файлов-ловушек.
         * **🖥️ Эмулятор экранов:** Проверка адаптивности под любые мониторы (от 1024x768 до 2K) и мобильные устройства.
         * **🔗 Анализатор ссылок:** Трассировка цепочек редиректов и детальный разбор UTM-меток для проверки маркетинга.
-        * **🕹️ Повторитель запросов:** Отправка множества запросов к API для базового стресс-тестирования.
+        * **📱 Мобильная лаборатория:** Набор утилит для тестирования мобильных приложений: QR-коды, облачный буфер, анализатор локализации и другие.
+        * **🎨 Frontend Анализатор:** Проверка доступности (Accessibility) и поиск битых ссылок на сайте.
+        * **🕵️ UI Инспектор:** Визуальный анализ UI: распознавание текста (OCR), симулятор "челок", инспектор шрифтов, анализ GIF и линейка.
+        * **️ Повторитель запросов:** Отправка множества запросов к API для базового стресс-тестирования.
         * **🧠 Тест-дизайн:** Калькулятор для расчета граничных значений и классов эквивалентности.
         * **📦 JSON Lab:** Валидация, форматирование и "причесывание" сложных JSON структур.
         * **🧮 Сравнение текста:** Дифф-инструмент для анализа логов, конфигураций и больших текстовых массивов.
@@ -61,6 +64,9 @@ def render_about_lab():
         * **💀 Negative Lab:** Chaos library for security and negative testing.
         * **🖥️ Screen Emulator:** Viewport testing for various monitors and devices.
         * **🔗 Link Tracker:** Redirect chain analysis and UTM parsing.
+        * **📱 Mobile Lab:** A suite of utilities for mobile app testing: QR codes, cloud clipboard, localization analyzer, and more.
+        * **🎨 Frontend Analyzer:** Accessibility (a11y) checks and broken link crawling.
+        * **🕵️ UI Inspector:** Visual UI analysis: text recognition (OCR), notch simulator, font inspector, GIF analysis, and ruler.
         * **🕹️ Request Repeater:** Basic stress testing by sending multiple requests.
         * **🧠 Test Design:** Boundary Value Analysis (BVA) calculator.
         * **📦 JSON Lab:** Validate, format, and pretty-print complex JSON structures.
@@ -78,6 +84,6 @@ def render_about_lab():
         **Email:** [yur4enko.danil.18@gmail.com](mailto:yur4enko.danil.18@gmail.com)
         """)
 
-    app_version = st.session_state.get("app_version", "2.1.2")
+    app_version = st.session_state.get("app_version", "2.2.1")
     st.divider()
     st.caption(f"v{app_version} Stable | Created with passion for Quality Assurance")

@@ -63,7 +63,7 @@ def render_api_client_lab():
         headers_str = c1.text_area(t["headers_label"], '{"Content-Type": "application/json"}', height=200)
         body_str = c2.text_area(t["body_label"], '{\n  "name": "Apple MacBook Pro 16",\n  "data": {\n    "year": 2019,\n    "price": 1849.99,\n    "CPU model": "Intel Core i9",\n    "Hard disk size": "1 TB"\n  }\n}', height=200)
 
-    if st.button(t["send_button"], use_container_width=True):
+    if st.button(t["send_button"], width='stretch'):
         try:
             headers = json.loads(headers_str) if headers_str.strip() else {}
         except json.JSONDecodeError:

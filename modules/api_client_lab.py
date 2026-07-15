@@ -67,10 +67,30 @@ def parse_curl_command(curl_command):
     
     return result
 
+def render_kv_editor(items_list, add_button_label, key_placeholder, value_placeholder, list_key):
+    """Renders a dynamic key-value editor using text inputs."""
+    for i, item in enumerate(items_list):
+        col1, col2, col3 = st.columns([5, 5, 1])
+        new_key = col1.text_input(f"Key {i}", value=item["key"], placeholder=key_placeholder, key=f"{list_key}_k_{i}", label_visibility="collapsed") # Label is for accessibility
+        new_value = col2.text_input(f"Value {i}", value=item["value"], placeholder=value_placeholder, key=f"{list_key}_v_{i}", label_visibility="collapsed") # Label is for accessibility
+        
+        items_list[i]["key"] = new_key
+        items_list[i]["value"] = new_value
+
+        if col3.button("🗑️", key=f"{list_key}_del_{i}"):
+            items_list.pop(i)
+            st.rerun()
+
+    if st.button(add_button_label, width='stretch'):
+        items_list.append({"key": "", "value": ""})
+        st.rerun()
+
+    return items_list
+
 def render_api_client_lab():
     t = get_text
 
-    st.subheader(t("about_module_api_client"))
+    st.subheader(t("api_client_header"))
 
     # --- STATE INITIALIZATION ---
     if 'api_history' not in st.session_state:
@@ -78,13 +98,13 @@ def render_api_client_lab():
     if 'api_response' not in st.session_state:
         st.session_state.api_response = None
     
-    # --- NEW: State for data editors ---
-    if 'api_params_df' not in st.session_state:
-        st.session_state.api_params_df = pd.DataFrame([{"key": "", "value": ""}])
-    if 'api_headers_df' not in st.session_state:
-        st.session_state.api_headers_df = pd.DataFrame([
+    # --- NEW: State for dynamic editors ---
+    if 'api_params' not in st.session_state:
+        st.session_state.api_params = [{"key": "", "value": ""}]
+    if 'api_headers' not in st.session_state:
+        st.session_state.api_headers = [
             {"key": "Content-Type", "value": "application/json"}
-        ])
+        ]
 
     # State for other input fields
     if 'api_url' not in st.session_state: st.session_state.api_url = ""
@@ -100,7 +120,7 @@ def render_api_client_lab():
     with history_col:
         st.markdown(f"#### {t('history_header')}")
         
-        if st.button(t('history_clear'), use_container_width=True):
+        if st.button(t('history_clear'), width='stretch'):
             st.session_state.api_history = []
             st.session_state.api_response = None
             st.rerun()
@@ -116,33 +136,22 @@ def render_api_client_lab():
                     st.markdown(f"**{req['method']}** `{req['url']}`")
                     
                     hc1, hc2 = st.columns(2)
-                    if hc1.button(t('history_replay'), key=f"replay_{i}", use_container_width=True):
+                    if hc1.button(t('history_replay'), key=f"replay_{i}", width='stretch'):
                         st.session_state.api_url = req['url']
                         st.session_state.api_method = req['method']
                         st.session_state.api_body = req['body']
 
-                        # Handle params and headers (with backward compatibility)
-                        if 'params_df' in req: # New format
-                            st.session_state.api_params_df = pd.DataFrame(req['params_df']) if req['params_df'] else pd.DataFrame([{"key": "", "value": ""}])
-                            st.session_state.api_headers_df = pd.DataFrame(req['headers_df']) if req['headers_df'] else pd.DataFrame([{"key": "", "value": ""}])
-                        else: # Old format
-                            params_list = []
-                            if req.get('params'):
-                                for line in req['params'].strip().split('\n'):
-                                    if '=' in line:
-                                        key, val = line.split('=', 1)
-                                        params_list.append({"key": key.strip(), "value": val.strip()})
-                            st.session_state.api_params_df = pd.DataFrame(params_list) if params_list else pd.DataFrame([{"key": "", "value": ""}])
-                            try:
-                                headers_dict = json.loads(req.get('headers', '{}'))
-                                st.session_state.api_headers_df = pd.DataFrame(list(headers_dict.items()), columns=["key", "value"])
-                            except (json.JSONDecodeError, TypeError):
-                                st.session_state.api_headers_df = pd.DataFrame([{"key": "", "value": ""}])
+                        # Populate dynamic editors
+                        st.session_state.api_params = req.get('params', [{"key": "", "value": ""}])
+                        st.session_state.api_headers = req.get('headers', [{"key": "", "value": ""}])
+                        # Ensure lists are not empty
+                        if not st.session_state.api_params: st.session_state.api_params = [{"key": "", "value": ""}]
+                        if not st.session_state.api_headers: st.session_state.api_headers = [{"key": "", "value": ""}]
 
                         st.session_state.api_response = None
                         st.rerun()
 
-                    if hc2.button(t('history_delete'), key=f"delete_{i}", use_container_width=True):
+                    if hc2.button(t('history_delete'), key=f"delete_{i}", width='stretch'):
                         st.session_state.api_history.pop(i)
                         st.rerun()
 
@@ -159,58 +168,53 @@ def render_api_client_lab():
                         st.session_state.api_method = parsed['method']
                         st.session_state.api_body = parsed['data']
                         # Populate data editors
-                        params_df = pd.DataFrame(list(parsed['params'].items()), columns=["key", "value"])
-                        headers_df = pd.DataFrame(list(parsed['headers'].items()), columns=["key", "value"])
-                        st.session_state.api_params_df = params_df if not params_df.empty else pd.DataFrame([{"key": "", "value": ""}])
-                        st.session_state.api_headers_df = headers_df if not headers_df.empty else pd.DataFrame([{"key": "", "value": ""}])
+                        st.session_state.api_params = [{"key": k, "value": v} for k, v in parsed['params'].items()]
+                        st.session_state.api_headers = [{"key": k, "value": v} for k, v in parsed['headers'].items()]
+                        if not st.session_state.api_params: st.session_state.api_params = [{"key": "", "value": ""}]
+                        if not st.session_state.api_headers: st.session_state.api_headers = [{"key": "", "value": ""}]
 
+                        st.toast(t("curl_parse_success"))
                         st.rerun()
                     except Exception as e:
                         st.error(f"{t('curl_error')}: {e}")
 
         # --- REQUEST BUILDER ---
         with st.container(border=True):
-            url = st.text_input("URL", value=st.session_state.api_url)
+            url = st.text_input(t("api_client_url_label"), value=st.session_state.api_url, placeholder="https://api.example.com/v1/users")
             st.session_state.api_url = url # Sync back manual changes
 
             method_options = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
             method_index = method_options.index(st.session_state.api_method) if st.session_state.api_method in method_options else 0
-            method = st.selectbox("Method", options=method_options, index=method_index)
+            method = st.selectbox(t("api_client_method_label"), options=method_options, index=method_index, label_visibility="collapsed")
             st.session_state.api_method = method
 
             tab_params, tab_headers, tab_body = st.tabs([t("params_tab"), t("headers_tab"), t("body_tab")])
 
             with tab_params:
-                params_df = st.data_editor(
-                    st.session_state.api_params_df,
-                    num_rows="dynamic",
-                    use_container_width=True,
-                    key="params_editor"
-                )
-                st.session_state.api_params_df = params_df
+                st.session_state.api_params = render_kv_editor(st.session_state.api_params, f"➕ {t('api_client_add_param_button')}", t("api_client_key_placeholder"), t("api_client_value_placeholder"), "params")
 
             with tab_headers:
-                headers_df = st.data_editor(
-                    st.session_state.api_headers_df,
-                    num_rows="dynamic",
-                    use_container_width=True,
-                    key="headers_editor"
-                )
-                st.session_state.api_headers_df = headers_df
+                st.session_state.api_headers = render_kv_editor(st.session_state.api_headers, f"➕ {t('api_client_add_header_button')}", t("api_client_key_placeholder"), t("api_client_value_placeholder"), "headers")
 
             with tab_body:
-                body = st.text_area("Request Body", height=150, value=st.session_state.api_body)
+                body = st.text_area(t("api_client_body_label"), height=150, value=st.session_state.api_body, placeholder='{ "key": "value" }')
                 st.session_state.api_body = body
 
-        if st.button(t("send_button"), use_container_width=True, type="primary"):
+        if st.button(t("send_button"), width='stretch', type="primary"):
+            # Store current request for Repeater integration
+            st.session_state.api_client_url_for_repeater = url
+            st.session_state.api_client_method_for_repeater = method
+            st.session_state.api_client_headers_for_repeater = st.session_state.api_headers
+            st.session_state.api_client_body_for_repeater = body
+
             if not url:
-                st.error("URL не может быть пустым!")
+                st.error(t("api_client_url_error"))
             else:
-                with st.spinner("Выполняется запрос..."):
+                with st.spinner(t("link_lab_spinner_text")): # Reusing spinner text
                     try:
                         # Prepare params and headers from data editors
-                        req_params = {row["key"]: row["value"] for _, row in params_df.iterrows() if row["key"]}
-                        req_headers = {row["key"]: row["value"] for _, row in headers_df.iterrows() if row["key"]}
+                        req_params = {item["key"]: item["value"] for item in st.session_state.api_params if item["key"]}
+                        req_headers = {item["key"]: item["value"] for item in st.session_state.api_headers if item["key"]}
 
                         # Make request
                         response = requests.request(
@@ -227,8 +231,8 @@ def render_api_client_lab():
                         st.session_state.api_history.append({
                             "url": url,
                             "method": method,
-                            "params_df": params_df.to_dict('records'),
-                            "headers_df": headers_df.to_dict('records'),
+                            "params": st.session_state.api_params,
+                            "headers": st.session_state.api_headers,
                             "body": body,
                         })
                         # Limit history size
@@ -250,28 +254,34 @@ def render_api_client_lab():
                 response_time_ms = response.elapsed.total_seconds() * 1000
                 response_size_kb = len(response.content) / 1024 if response.content else 0
                 status_code = response.status_code
-                color = "green" if 200 <= status_code < 300 else "orange" if 400 <= status_code < 500 else "red"
+                
+                if 200 <= status_code < 300:
+                    status_icon, color = "✅", "green"
+                elif 400 <= status_code < 500:
+                    status_icon, color = "⚠️", "orange"
+                else:
+                    status_icon, color = "❌", "red"
 
                 st.markdown(
                     f"""
-                    **{t('response_status')}:** <span style='color:{color}; font-weight:bold;'>{status_code} {response.reason}</span> &nbsp;&nbsp;&nbsp;
+                    {status_icon} **{t('response_status')}:** <span style='color:{color}; font-weight:bold;'>{status_code} {response.reason}</span> &nbsp;&nbsp;&nbsp;
                     **{t('response_time')}:** <span style='font-weight:bold;'>{response_time_ms:.0f} ms</span> &nbsp;&nbsp;&nbsp;
                     **{t('response_size')}:** <span style='font-weight:bold;'>{response_size_kb:.2f} KB</span>
                     """, unsafe_allow_html=True)
                 
-                resp_tab1, resp_tab2 = st.tabs([t('response_body_tab'), t('response_headers_tab')])
+                resp_tab1, resp_tab2, resp_tab3 = st.tabs([t('response_body_tab'), t('response_headers_tab'), t('api_client_cookies_tab')])
                 with resp_tab1:
                     try:
-                        # Try to pretty-print JSON
                         st.json(response.json())
                     except (json.JSONDecodeError, AttributeError):
-                        # Fallback to plain text
                         st.code(response.text, language='text')                
                 with resp_tab2:
                     st.json(dict(response.headers))
+                with resp_tab3:
+                    st.json(dict(response.cookies))
 
             elif isinstance(response, requests.RequestException):
-                st.error(f"Ошибка подключения: {response}")
+                st.error(t("api_client_request_error").format(e=response))
     
     with st.expander(t("guide_header")):
         st.markdown(t("api_client_guide_content"))

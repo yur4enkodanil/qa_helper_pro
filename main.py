@@ -4,6 +4,8 @@ import shutil
 import importlib
 import sys
 import json
+from io import BytesIO
+import base64
 
 # Добавляем корневую папку проекта в sys.path, чтобы все модули могли найти друг друга.
 # Это решает проблемы с импортами вида `from utils.helpers...` из подмодулей.
@@ -12,7 +14,7 @@ sys.path.insert(0, project_root)
 from modules.i18n import get_text
 
 # --- ВЕРСИЯ ПРИЛОЖЕНИЯ ---
-APP_VERSION = "2.1.2"
+APP_VERSION = "2.2.1"
 
 # --- ЛОГИРОВАНИЕ ОШИБОК В ФАЙЛ ---
 LOG_FILE = os.path.join(project_root, "qa_helper_pro.log")
@@ -52,8 +54,8 @@ st.set_page_config(page_title="QA Helper Pro", layout="wide", page_icon="🚀")
 # --- ИНЖЕКЦИЯ СОВРЕМЕННЫХ СТИЛЕЙ ---
 st.markdown("""
 <style>
-    html {
-        font-size: 95%; /* Уменьшаем масштаб всего приложения для большей компактности */
+    section[data-testid="stAppViewContainer"] {
+        font-size: 80%; /* Уменьшаем масштаб основного контента, не затрагивая сайдбар */
     }
 
     /* Стилизация таблиц (st.table) */
@@ -72,7 +74,6 @@ st.markdown("""
     td, th {
         border: 1px solid #4A4A4A;
     }
-<style>
     /* Стиль для контейнеров, созданных через st.container(border=True) */
     div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #1E1E1E; /* Темный фон для карточки */
@@ -134,6 +135,39 @@ for tool in load_tools_from_config():
         tool["func"] = loaded_func
         TOOLS_CONFIG.append(tool)
 
+# --- ВРЕМЕННОЕ РЕШЕНИЕ: РУЧНОЕ ДОБАВЛЕНИЕ НОВЫХ ИНСТРУМЕНТОВ ---
+# Это позволяет добавлять новые модули без редактирования tools_config.json
+new_tools_to_add = [
+    {
+        "mod": "ui_inspector_lab", "func": "render_ui_inspector_lab", 
+        "ru": "🕵️ UI Инспектор", "en": "🕵️ UI Inspector"
+    }
+]
+for tool_data in new_tools_to_add:
+    loaded_func = load_tool(tool_data["mod"], tool_data["func"])
+    if loaded_func:
+        tool_data["func"] = loaded_func
+        TOOLS_CONFIG.append(tool_data)
+
+# --- NEW: Категоризация инструментов для улучшенной навигации ---
+CATEGORIES_RU = {
+    "Система": ["Журнал ошибок", "О программе"],
+    "Инструменты для Веб": ["Эмулятор экранов", "Анализатор ссылок", "Frontend Анализатор", "UI Инспектор", "Сравнение скриншотов"],
+    "Инструменты для API и Данных": ["API Клиент", "Повторитель запросов", "Генератор данных", "JSON Lab", "Base64 Кодер"],
+    "Инструменты для Файлов": ["Файловый цех", "Анализатор логов", "Проверить хеш", "Визуальная проверка"],
+    "Общие утилиты": ["Матрица тестов", "Тест-дизайн", "Негативные сценарии", "Сравнение текста", "Заметки"],
+    "Мобильная лаборатория": ["Мобильная лаборатория"]
+}
+
+CATEGORIES_EN = {
+    "System": ["Журнал ошибок", "О программе"],
+    "Web Tools": ["Эмулятор экранов", "Анализатор ссылок", "Frontend Анализатор", "UI Инспектор", "Сравнение скриншотов"],
+    "API & Data Tools": ["API Клиент", "Повторитель запросов", "Генератор данных", "JSON Lab", "Base64 Кодер"],
+    "File Tools": ["Файловый цех", "Анализатор логов", "Проверить хеш", "Визуальная проверка"],
+    "General Utilities": ["Матрица тестов", "Тест-дизайн", "Негативные сценарии", "Сравнение текста", "Заметки"],
+    "Mobile Lab": ["Мобильная лаборатория"]
+}
+
 lang = st.session_state.lang
 lang_key = lang.lower()
 
@@ -147,50 +181,50 @@ if st.session_state.nav_index >= len(current_menu):
 # --- ФУНКЦИЯ ГЛУБОКОЙ ОЧИСТКИ ---
 def deep_clear_all(current_lang="RU"):
     # 1. Сброс оперативной памяти (Session State)
-    # Группируем ключи для лучшей читаемости и поддержки
-    keys_to_reset = [
-        # matrix_lab
-        "matrix_params", "matrix_editor_widget", "matrix_input_editor", "matrix_result_viewer", "matrix_df",
-        # log_analyzer_lab
-        "log_lines", "log_stats",
-        # notes_lab
-        "user_notes",
-        # json_lab
-        "json_input", "json_content", "json_widget_version",
-        # diff_lab
-        "text_diff_a", "text_diff_b",
-        # visual_lab, integrity_lab, file_lab
-        "v_ref", "v_cur", "hash_path_state", "hash_upd", "file_gen_path", "upd_gen",
-        "tree_path_state", "tree_upd", "repl_file", "repl_dest",
+    # Сохраняем ключи, которые не нужно сбрасывать
+    preserved_keys = ["lang", "nav_index", "app_version"]
+    # Исключаем ключи заметок (начинаются с 'content_')
+    keys_to_delete = [
+        k
+        for k in st.session_state.keys()
+        if k not in preserved_keys and not k.startswith("content_")
     ]
-    for key in keys_to_reset:
-        if key in st.session_state:
-            del st.session_state[key]
-    print("[QA Helper] Session state cleared.", file=sys.stderr)
+    
+    for key in keys_to_delete:
+        del st.session_state[key]
+    print("[QA Helper] Session state cleared (notes preserved).", file=sys.stderr)
 
-    # 2. Очистка физических папок
-    # Добавляем папки от заметок и визуального регресса
-    folders_to_clean = ["generated_files", "test_tree", "qa_notes_storage", "reference_storage"]
+    # 2. Очистка физических папок (кроме заметок)
+    folders_to_clean = ["generated_files", "test_tree", "reference_storage"]
 
     for folder in folders_to_clean:
         if os.path.exists(folder):
             try:
-                # Удаляем все содержимое папки
-                for filename in os.listdir(folder):
-                    file_path = os.path.join(folder, filename)
-                    if os.path.isfile(file_path) or os.path.islink(file_path):
-                        os.unlink(file_path)  # Удаление файла [cite: 2, 3]
-                    elif os.path.isdir(file_path):
-                        shutil.rmtree(file_path)  # Удаление подпапок
-                print(f"[QA Helper] Folder '{folder}' cleaned.", file=sys.stderr)
+                # Для остальных папок удаляем все и пересоздаем
+                shutil.rmtree(folder)
+                os.makedirs(folder, exist_ok=True)
+                print(
+                    f"[QA Helper] Folder '{folder}' fully cleared and recreated.",
+                    file=sys.stderr,
+                )
             except Exception as e:
                 st.error(f"Ошибка при очистке {folder}: {e}")
-                print(f"[QA Helper] ERROR cleaning folder '{folder}': {e}", file=sys.stderr)
+                print(
+                    f"[QA Helper] ERROR cleaning folder '{folder}': {e}", file=sys.stderr
+                )
+
+    # 3. Очистка кеша Streamlit
+    try:
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        print("[QA Helper] Streamlit caches cleared.", file=sys.stderr)
+    except Exception as e:
+        print(f"[QA Helper] ERROR clearing Streamlit caches: {e}", file=sys.stderr)
 
     msg = (
-        "Система полностью очищена!"
+        "Система очищена (заметки сохранены)!"
         if current_lang == "RU"
-        else "System completely cleared!"
+        else "System cleared (notes preserved)!"
     )
     st.toast(msg)
     print(f"[QA Helper] {msg}", file=sys.stderr)
@@ -204,14 +238,57 @@ with st.sidebar:
 
     st.divider()
 
-    nav_label = "📍 Навигация" if lang == "RU" else "📍 Navigation"
-    nav_idx = st.radio(
-        nav_label,
-        options=range(len(current_menu)),
-        format_func=lambda i: current_menu[i],
-        index=st.session_state.nav_index,
-    )
-    st.session_state.nav_index = nav_idx
+    # --- NEW: Навигация с поиском и категориями ---
+    search_query = st.text_input(
+        "🔍 " + ("Поиск по модулям..." if lang == "RU" else "Search modules..."),
+        key="nav_search"
+    ).lower()
+
+    # Фильтруем меню на основе поиска
+    filtered_menu = {
+        name: idx for idx, name in enumerate(current_menu)
+        if search_query in name.lower()
+    }
+
+    categories = CATEGORIES_RU if lang == "RU" else CATEGORIES_EN
+
+    # Создаем карту из текущего языка в русский для сопоставления с категориями
+    # Категории определены через русские названия, которые выступают как ID
+    name_to_ru_map = {tool[lang_key]: tool['ru'] for tool in TOOLS_CONFIG}
+
+    def get_clean_ru_name(display_name):
+        """Helper to get the Russian tool name without emoji for category matching."""
+        ru_name_with_emoji = name_to_ru_map.get(display_name)
+        if not ru_name_with_emoji:
+            return ""
+        # Assuming format is "emoji name"
+        parts = ru_name_with_emoji.split(' ', 1)
+        return parts[-1]
+
+    for category, tools_in_cat in categories.items():
+        # Показываем категорию, только если в ней есть инструменты, соответствующие поиску
+        category_tools = {
+            name: idx for name, idx in filtered_menu.items()
+            if get_clean_ru_name(name) in tools_in_cat
+        }
+        if category_tools or not search_query:
+            st.markdown(f"**{category}**")
+            
+            # Если есть поиск, показываем только отфильтрованные
+            if search_query:
+                display_tools = category_tools
+            else:
+                display_tools = {
+                    name: i for i, name in enumerate(current_menu) if get_clean_ru_name(name) in tools_in_cat
+                }
+            
+            for name, idx in display_tools.items():
+                # Используем кастомные кнопки вместо st.radio
+                is_selected = (st.session_state.nav_index == idx)
+                button_type = "primary" if is_selected else "secondary"
+                if st.button(name, key=f"nav_{idx}", type=button_type, width='stretch'):
+                    st.session_state.nav_index = idx
+                    st.rerun()
 
     st.divider()
 
@@ -224,8 +301,8 @@ with st.sidebar:
     # Кнопка очистки
     if st.button(
         clear_btn,
-        use_container_width=True,
         help=clear_help,
+        width='stretch'
     ):
         deep_clear_all(lang)
         st.rerun()
@@ -234,7 +311,7 @@ with st.sidebar:
 
 # --- РОУТИНГ ---
 # Вызываем функцию рендера для выбранного в сайдбаре инструмента
-selected_tool_data = TOOLS_CONFIG[nav_idx]
+selected_tool_data = TOOLS_CONFIG[st.session_state.nav_index]
 if selected_tool_data and "func" in selected_tool_data:
     # Вызываем функцию из ключа 'func'
     selected_tool_data["func"]()

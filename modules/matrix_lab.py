@@ -101,7 +101,7 @@ def render_matrix_lab():
 
     if st.button(
         "🚀 Сгенерировать сценарии" if lang == "RU" else "🚀 Generate Scenarios",
-        use_container_width=True,
+        width='stretch',
     ):
         write_log(f"Matrix: Generation started ({method})")
 

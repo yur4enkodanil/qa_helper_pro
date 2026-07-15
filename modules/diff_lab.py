@@ -34,7 +34,7 @@ def render_diff_lab():
         c1, c2, _ = st.columns([1, 1, 2])
         is_json = c1.checkbox("Как JSON (Pretty)", value=True)
         
-        if st.button("🔍 Найти точные различия", use_container_width=True):
+        if st.button("🔍 Найти точные различия", width='stretch'):
             # Подготовка строк
             lines_a = text_a.splitlines()
             lines_b = text_b.splitlines()

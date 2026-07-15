@@ -1,67 +1,61 @@
 import streamlit as st
-import os
 import hashlib
-from utils.ui_helpers import open_file_picker
+from modules.i18n import get_text
 
-def get_file_hash(file_path, algo="sha256"):
-    """Чтение файла по чанкам для поддержки гигантских файлов."""
-    hash_func = hashlib.sha256() if algo == "sha256" else hashlib.md5()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            hash_func.update(chunk)
+def get_bytes_hash(file_bytes, algo="sha256"):
+    """Calculates hash from bytes for various algorithms."""
+    if algo == "md5":
+        hash_func = hashlib.md5()
+    elif algo == "sha1":
+        hash_func = hashlib.sha1()
+    elif algo == "sha512":
+        hash_func = hashlib.sha512()
+    else:  # default to sha256
+        hash_func = hashlib.sha256()
+
+    hash_func.update(file_bytes)
     return hash_func.hexdigest()
 
 def render_integrity_lab():
-    logger = st.session_state.get('logger')
-    st.subheader("🔒 Целостность и Хеширование")
-    st.info("Выберите файл, чтобы получить его отпечаток (Checksum).")
-    
-    # Инициализация состояния для фикса бага обновления пути
-    if 'hash_upd' not in st.session_state:
-        st.session_state.hash_upd = 0
-    if 'hash_path_state' not in st.session_state:
-        st.session_state['hash_path_state'] = ""
+    t = get_text
+    st.subheader(t("hash_header"))
 
-    with st.container(border=True):
-        col_p, col_b = st.columns([3, 1])
-        
-        with col_b:
-            st.write("")
-            if st.button("📂 Обзор...", key="hash_browse"):
-                # Используем централизованную функцию для выбора файла
-                selected_file = open_file_picker("file")
-                if selected_file:
-                    st.session_state['hash_path_state'] = selected_file
-                    st.session_state.hash_upd += 1  # Смена ключа для обновления виджета
-                    if logger: logger(f"Integrity: Выбран файл {os.path.basename(selected_file)}")
-                    st.rerun()  # Принудительная перерисовка страницы
+    # 1. File Uploader
+    uploaded_file = st.file_uploader(t("hash_upload_label"), type=None, key="hash_file_uploader")
 
-        with col_p:
-            # Динамический ключ гарантирует отображение нового пути после выбора
-            path_input = st.text_input(
-                "Путь к файлу:", 
-                value=st.session_state['hash_path_state'], 
-                key=f"hash_input_dyn_{st.session_state.hash_upd}"
-            )
-            st.session_state['hash_path_state'] = path_input
-        
-        algo = st.selectbox("Алгоритм хеширования:", ["sha256", "md5"], index=0)
-    
-    if st.button("🔢 Рассчитать хеш", use_container_width=True):
-        if os.path.exists(path_input) and os.path.isfile(path_input):
-            if logger: logger(f"Integrity: Расчет {algo} для {os.path.basename(path_input)}")
-            
-            with st.spinner("Выполняется расчет..."):
-                try:
-                    result = get_file_hash(path_input, algo)
-                    st.success("Хеш успешно рассчитан!")
-                    st.code(result, language="text")
-                    
-                    if logger: logger(f"Integrity: Хеш готов ({result[:10]}...)")
-                    
-                except Exception as e:
-                    if logger: logger(f"Integrity ERROR: {str(e)}")
-                    st.error(f"Ошибка при чтении файла: {e}")
-        else:
-            st.error("Файл не найден. Проверьте правильность пути.")
-            if logger: logger("Integrity: Ошибка — файл не найден")
+    # 2. Algorithm and Expected Hash inputs
+    col1, col2 = st.columns(2)
+    with col1:
+        # Adding more algorithms
+        algo = st.selectbox(
+            t("hash_algo_label"),
+            ["sha256", "md5", "sha1", "sha512"],
+            index=0
+        )
+    with col2:
+        expected_hash = st.text_input(
+            t("hash_expected_label"),
+            placeholder=t("hash_expected_placeholder")
+        ).strip().lower()
+
+    # 3. Automatic calculation and comparison
+    if uploaded_file is not None:
+        with st.spinner(t("hash_spinner")):
+            try:
+                file_bytes = uploaded_file.getvalue()
+                calculated_hash = get_bytes_hash(file_bytes, algo)
+
+                st.success(t("hash_success"))
+                st.code(calculated_hash, language="text")
+
+                # Comparison logic
+                if expected_hash:
+                    if calculated_hash == expected_hash:
+                        st.success(t("hash_match"))
+                    else:
+                        st.error(t("hash_mismatch"))
+
+            except Exception as e:
+                st.error(f"{t('hash_error_read')}: {e}")
+    else:
+        st.info(t("hash_warn_no_file"))

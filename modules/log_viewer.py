@@ -1,35 +1,15 @@
 import streamlit as st
 import os
+from modules.i18n import get_text
 
 def render_log_viewer():
     """
-    Отображает содержимое файла логов и позволяет его очистить.
+    Отображает содержимое файла логов и позволяет его очистить, обновить и скачать.
     """
-    lang = st.session_state.get("lang", "RU")
-    
-    # --- Тексты для i18n ---
-    texts = {
-        "RU": {
-            "header": "🪲 Журнал ошибок (Logs)",
-            "info": "Здесь отображаются технические ошибки, которые произошли во время работы приложения. Если что-то пошло не так, скопируйте этот текст и приложите к сообщению об ошибке.",
-            "read_error": "Не удалось прочитать файл логов: ",
-            "no_errors": "🎉 Ошибок не найдено. Журнал пуст.",
-            "clear_button": "🗑️ Очистить журнал логов",
-            "not_created": "🎉 Файл логов еще не создан. Ошибок не было."
-        },
-        "EN": {
-            "header": "🪲 Error Log",
-            "info": "This section displays technical errors that occurred while the application was running. If something went wrong, copy this text and attach it to your bug report.",
-            "read_error": "Failed to read log file: ",
-            "no_errors": "🎉 No errors found. The log is empty.",
-            "clear_button": "🗑️ Clear Log File",
-            "not_created": "🎉 Log file not created yet. No errors have occurred."
-        }
-    }
-    t = texts[lang]
+    t = get_text
 
-    st.subheader(t["header"])
-    st.info(t["info"])
+    st.subheader(t("log_viewer_header"))
+    st.info(t("log_viewer_info"))
 
     # Путь к лог-файлу в корневой папке проекта
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -40,12 +20,37 @@ def render_log_viewer():
             with open(log_file_path, "r", encoding="utf-8") as f:
                 log_content = f.read()
             
-            st.code(log_content, language="log") if log_content else st.success(t["no_errors"])
+            # Отображение контента лога
+            if log_content:
+                st.code(log_content, language="log")
+            else:
+                st.success(t("log_viewer_no_errors"))
 
-            if st.button(t["clear_button"]):
-                with open(log_file_path, "w", encoding="utf-8") as f: f.write("")
-                st.rerun()
+            # Кнопки действий
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                if st.button(t("log_viewer_refresh_button"), width='stretch'):
+                    st.rerun()
+            
+            with col2:
+                # Кнопка скачивания активна, только если есть что скачивать
+                st.download_button(
+                    label=t("log_viewer_download_button"),
+                    data=log_content.encode('utf-8'),
+                    file_name="qa_helper_pro.log",
+                    mime="text/plain",
+                    width='stretch',
+                    disabled=not log_content
+                )
+
+            with col3:
+                if st.button(t("log_viewer_clear_button"), width='stretch', type="secondary"):
+                    with open(log_file_path, "w", encoding="utf-8") as f:
+                        f.write("")
+                    st.rerun()
+
         except Exception as e:
-            st.error(f"{t['read_error']}{e}")
+            st.error(f"{t('log_viewer_read_error')}{e}")
     else:
-        st.success(t["not_created"])
+        st.success(t("log_viewer_not_created"))

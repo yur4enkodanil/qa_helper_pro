@@ -56,6 +56,20 @@
         "func": "render_link_lab"
     },
     {
+        "ru": "📱 Мобильная лаборатория",
+        "en": "📱 Mobile Lab",
+        "desc_key": "about_module_mobile",
+        "mod": "mobile_lab",
+        "func": "render_mobile_lab"
+    },
+    {
+        "ru": "🎨 Frontend Анализатор",
+        "en": "🎨 Frontend Analyzer",
+        "desc_key": "about_module_frontend",
+        "mod": "frontend_lab",
+        "func": "render_frontend_lab"
+    },
+    {
         "ru": "🕹️ Повторитель запросов",
         "en": "🕹️ Request Repeater",
         "desc_key": "about_module_repeater",
