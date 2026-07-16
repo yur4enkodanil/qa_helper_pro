@@ -41,7 +41,7 @@ echo.
 
 :: 3. Установка библиотек
 echo [INFO] Активация окружения и установка библиотек из requirements.txt...
-call venv\Scripts\activate.bat && pip install --upgrade pip && pip install -r requirements.txt && echo. && echo [INFO] Установка браузеров для Frontend Анализатора (может занять несколько минут)... && playwright install
+call venv\Scripts\activate.bat && pip install --upgrade pip && pip install -r requirements.txt && echo. && echo [INFO] Установка браузера для Frontend Анализатора (может занять несколько минут)... && playwright install chromium
 
 if %errorlevel% neq 0 (
     echo [ERROR] Не удалось установить библиотеки. Проверьте подключение к интернету.

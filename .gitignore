@@ -1,14 +1,27 @@
-# Окружение
+# Папки виртуального окружения
 venv/
-.env
+.venv/
+
+# Системные файлы Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
 
-# Хранилища и логи
-reference_storage/*
-!reference_storage/.gitkeep
+# Сгенерированные пользователем файлы и папки
+generated_files/
 test_tree/
-log_history.txt
+reference_storage/
+qa_notes_storage/
+*.log
 
-# Специфичное для VS Code
+# Папки IDE и кеш инструментов
 .vscode/
+.idea/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Файлы окружения
+.env
