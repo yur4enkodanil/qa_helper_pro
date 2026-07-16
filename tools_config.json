@@ -70,6 +70,13 @@
         "func": "render_frontend_lab"
     },
     {
+        "ru": "🕵️ UI Инспектор",
+        "en": "🕵️ UI Inspector",
+        "desc_key": "about_module_ui_inspector",
+        "mod": "ui_inspector_lab",
+        "func": "render_ui_inspector_lab"
+    },
+    {
         "ru": "🕹️ Повторитель запросов",
         "en": "🕹️ Request Repeater",
         "desc_key": "about_module_repeater",

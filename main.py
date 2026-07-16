@@ -11,6 +11,29 @@ import base64
 # Это решает проблемы с импортами вида `from utils.helpers...` из подмодулей.
 project_root = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, project_root)
+
+# --- NEW: DLL PATH FIX FOR PYZBAR ON WINDOWS ---
+def add_dll_path():
+    """Adds the bundled 'dlls' directory to the search path for libraries."""
+    if sys.platform == "win32":
+        dll_path = os.path.join(project_root, "dlls")
+        if os.path.isdir(dll_path):
+            # For Python 3.8+ on Windows, this is the recommended way
+            if hasattr(os, 'add_dll_directory'):
+                try:
+                    os.add_dll_directory(dll_path)
+                    print(f"[QA Helper] Registered DLL path: {dll_path}", file=sys.stderr)
+                except Exception as e:
+                    print(f"[QA Helper] Failed to use os.add_dll_directory(): {e}", file=sys.stderr)
+            # Fallback for older Python versions
+            if dll_path not in os.environ['PATH']:
+                os.environ['PATH'] = dll_path + os.pathsep + os.environ['PATH']
+                print(f"[QA Helper] Added to PATH for DLLs: {dll_path}", file=sys.stderr)
+
+# Call the function at the start, before any other imports that might need it
+add_dll_path()
+# --- END OF FIX ---
+
 from modules.i18n import get_text
 
 # --- ВЕРСИЯ ПРИЛОЖЕНИЯ ---
@@ -102,14 +125,14 @@ def load_tool(module_name, func_name):
         # Сначала пытаемся загрузить из стандартной папки modules
         module = importlib.import_module(f"modules.{module_name}")
         return getattr(module, func_name)
-    except ImportError:
+    except ImportError as first_error:
         try:
             # Если не получилось, пробуем загрузить из корня проекта (для обратной совместимости)
             module = importlib.import_module(module_name)
             return getattr(module, func_name)
-        except Exception as e:
+        except Exception as second_error:
             print(
-                f"[QA Helper] Модуль '{module_name}' пропущен из-за ошибки: {e}",
+                f"[QA Helper] Модуль '{module_name}' пропущен. Основная ошибка: {first_error}. Дополнительная ошибка: {second_error}",
                 file=sys.stderr,
             )
             return None
@@ -134,20 +157,6 @@ for tool in load_tools_from_config():
     if loaded_func:
         tool["func"] = loaded_func
         TOOLS_CONFIG.append(tool)
-
-# --- ВРЕМЕННОЕ РЕШЕНИЕ: РУЧНОЕ ДОБАВЛЕНИЕ НОВЫХ ИНСТРУМЕНТОВ ---
-# Это позволяет добавлять новые модули без редактирования tools_config.json
-new_tools_to_add = [
-    {
-        "mod": "ui_inspector_lab", "func": "render_ui_inspector_lab", 
-        "ru": "🕵️ UI Инспектор", "en": "🕵️ UI Inspector"
-    }
-]
-for tool_data in new_tools_to_add:
-    loaded_func = load_tool(tool_data["mod"], tool_data["func"])
-    if loaded_func:
-        tool_data["func"] = loaded_func
-        TOOLS_CONFIG.append(tool_data)
 
 # --- NEW: Категоризация инструментов для улучшенной навигации ---
 CATEGORIES_RU = {

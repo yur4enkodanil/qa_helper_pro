@@ -2,7 +2,6 @@ import streamlit as st
 from modules.i18n import get_text
 import qrcode
 from PIL import Image
-from pyzbar.pyzbar import decode
 from urllib.parse import quote
 import pandas as pd
 import re
@@ -47,6 +46,8 @@ def _process_qr_image(image_bytes):
     """Helper to decode QR code from image bytes and show result."""
     t = get_text
     try:
+        # Отложенный импорт: библиотека загружается только при вызове функции
+        from pyzbar.pyzbar import decode
         image = Image.open(image_bytes)
         decoded_objects = decode(image)
         if decoded_objects:
@@ -54,8 +55,13 @@ def _process_qr_image(image_bytes):
                 st.success(f"**{t('qr_hub_scan_result')}**")
                 st.code(obj.data.decode('utf-8'))
             return True
-    except Exception:
-        pass # Ignore errors for now
+    except ImportError:
+        # Эта ошибка возникнет, если pyzbar или его .dll зависимости не найдены
+        st.error(t('qr_hub_scanner_unavailable_error'))
+        return False
+    except Exception as e:
+        # Другие возможные ошибки (например, битое изображение)
+        st.warning(f"{t('qr_hub_no_qr_found')}: {e}")
     st.warning(t('qr_hub_no_qr_found'))
     return False
 

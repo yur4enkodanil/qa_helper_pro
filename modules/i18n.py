@@ -7,8 +7,9 @@ TRANSLATIONS = {
         "about_header": "🚀 QA Helper Pro",
         "about_subheader": "Ваш швейцарский нож в мире тестирования",
         "about_desc": """
-        **QA Helper Pro** — это набор утилит, созданный для ускорения и упрощения повседневных задач QA-инженера. 
-        От генерации тестовых данных до анализа UI — все необходимое в одном месте.
+        **QA Helper Pro** — это экосистема инструментов, созданная для автоматизации рутинных задач тестирования, 
+        проверки безопасности и анализа производительности веб-приложений. 
+        Разработано тестировщиком для тестировщиков.
         """,
         "about_modules_header": "📚 Функциональные модули:",
         "about_module_api_client": "**📡 API Клиент:** Позволяет отправлять HTTP-запросы (GET, POST и др.), импортировать cURL и анализировать ответы сервера.",
@@ -21,13 +22,13 @@ TRANSLATIONS = {
         "about_module_file_lab": "**📁 Файловый цех:** Генерирует файлы заданного размера и формата для тестирования загрузок, а также создает сложные структуры папок.",
         "about_module_data_gen": "**🧪 Генератор данных:** Создает реалистичные тестовые данные: ФИО, адреса, номера карт, ИНН и многое другое.",
         "about_module_negative": "**💀 Негативные сценарии:** Библиотека готовых векторов атак (XSS, SQLi) и файлов-ловушек для базовых проверок безопасности.",
-        "about_module_matrix": "**📊 Матрица тестов:** Помогает сократить количество тест-кейсов, генерируя комбинации проверок методами Pairwise и Full Combinatorial.",
+        "about_module_matrix": "**📊 Матрица тестов:** Генерация комбинаций проверок методами Pairwise и Full Combinatorial. Экономит время на планировании.",
         "about_module_test_design": "**🧠 Тест-дизайн:** Калькулятор для быстрого определения граничных значений (BVA) и классов эквивалентности.",
-        "about_module_json": "**📦 JSON Lab:** Валидатор и форматер для JSON. Умеет исправлять мелкие синтаксические ошибки и отображать данные в виде дерева или таблицы.",
-        "about_module_diff": "**🧮 Сравнение текста:** Находит и подсвечивает различия между двумя блоками текста, идеально для сравнения логов или конфигураций.",
+        "about_module_json": "**📦 JSON Lab:** Валидация, форматирование и \"причесывание\" сложных JSON структур.",
+        "about_module_diff": "**🧮 Сравнение текста:** Дифф-инструмент для анализа логов, конфигураций и больших текстовых массивов.",
         "about_module_log_analyzer": "**📜 Анализатор логов:** Позволяет фильтровать и искать нужную информацию в больших лог-файлах, а также показывает статистику по уровням логирования.",
-        "about_module_hash": "**🛡️ Проверить хеш:** Рассчитывает контрольные суммы (MD5, SHA-256) для проверки целостности файлов.",
-        "about_module_visual": "**👁️ Визуальная проверка:** Позволяет управлять базой эталонных скриншотов и сравнивать их с актуальными для поиска визуальных регрессий.",
+        "about_module_hash": "**🛡️ Проверить хеш:** Быстрый расчет контрольных сумм MD5 и SHA-256 для контроля целостности файлов.",
+        "about_module_visual": "**👁️ Визуальная проверка:** Анализ метаданных (EXIF) и глубокая проверка свойств изображений.",
         "about_module_base64": "**🧬 Base64 Кодер:** Инструмент для кодирования и декодирования данных в формат Base64.",
         "about_module_links": "**🔗 Анализатор ссылок:** Отслеживает цепочки редиректов и разбирает URL на компоненты, включая UTM-метки.",
         "about_module_notes": "**📝 Заметки:** Простой блокнот для временного хранения текста, который сохраняется между сессиями.",
@@ -262,6 +263,11 @@ TRANSLATIONS = {
         "mobile_lab_guide_header": "💡 Как это использовать?",
         
         "qr_hub_guide": "1. **Генератор:** Введите любой текст или ссылку, чтобы мгновенно получить QR-код. Полезно для быстрой передачи URL на телефон.\n2. **Сканер:** Нажмите 'Начать сканирование', чтобы активировать камеру. Поднесите QR-код к камере, и его содержимое отобразится ниже.",
+        "qr_hub_guide": """Этот хаб работает в обе стороны:
+1.  **С ПК на телефон (Генератор):** Введите текст или ссылку, чтобы получить QR-код. Отсканируйте его телефоном, чтобы быстро передать данные.
+2.  **С телефона на ПК (Сканер):** Если на экране телефона есть QR-код (например, с токеном или URL), нажмите 'Начать сканирование' и покажите его веб-камере. Это самый быстрый способ скопировать текст с мобильного устройства на компьютер без проводов.
+3.  **Тестирование:** Вы также можете использовать сканер для проверки QR-кодов, которые генерирует тестируемое вами веб-приложение прямо на экране вашего ПК.
+""",
         "qr_hub_clipboard_caption": "Отсканируйте, чтобы открыть текст в браузере для копирования",
         "qr_hub_text_too_long": "Текст очень длинный. QR-код может быть сложным для сканирования.",
 
@@ -629,8 +635,8 @@ TRANSLATIONS = {
         "about_header": "🚀 QA Helper Pro",
         "about_subheader": "Your Swiss Army Knife in the World of Testing",
         "about_desc": """
-        **QA Helper Pro** is a suite of utilities designed to speed up and simplify the daily tasks of a QA engineer. 
-        From test data generation to UI analysis - everything you need in one place.
+        **QA Helper Pro** is an ecosystem of tools designed to automate routine testing tasks, 
+        security checks, and performance analysis.
         """,
         "about_modules_header": "📚 Module Overview:",
         "about_module_api_client": "**📡 API Client:** Allows sending HTTP requests (GET, POST, etc.), importing cURL, and analyzing server responses.",
@@ -643,20 +649,20 @@ TRANSLATIONS = {
         "about_module_file_lab": "**📁 File Lab:** Generates files of a specified size and format for upload testing, and creates complex folder structures.",
         "about_module_data_gen": "**🧪 Data Generator:** Creates realistic test data: names, addresses, card numbers, tax IDs, and more.",
         "about_module_negative": "**💀 Negative Scenarios:** A library of ready-made attack vectors (XSS, SQLi) and file traps for basic security checks.",
-        "about_module_matrix": "**📊 Test Matrix:** Helps reduce the number of test cases by generating test combinations using Pairwise and Full Combinatorial methods.",
-        "about_module_test_design": "**🧠 Test Design:** A calculator for quickly determining Boundary Value Analysis (BVA) and Equivalence Partitioning.",
-        "about_module_json": "**📦 JSON Lab:** A validator and formatter for JSON. It can fix minor syntax errors and display data as a tree or table.",
-        "about_module_diff": "**🧮 Text Diff:** Finds and highlights differences between two blocks of text, ideal for comparing logs or configurations.",
-        "about_module_log_analyzer": "**📜 Log Analyzer:** Allows filtering and searching for necessary information in large log files, and shows statistics by log level.",
-        "about_module_hash": "**🛡️ Hash Checker:** Calculates checksums (MD5, SHA-256) to verify file integrity.",
-        "about_module_visual": "**👁️ Visual Check:** Allows managing a database of reference screenshots and comparing them against actual ones to find visual regressions.",
+        "about_module_matrix": "**📊 Test Matrix:** Pairwise & Full Combinatorial test generation.",
+        "about_module_test_design": "**🧠 Test Design:** Boundary Value Analysis (BVA) calculator.",
+        "about_module_json": "**📦 JSON Lab:** Validate, format, and pretty-print complex JSON structures.",
+        "about_module_diff": "**🧮 Text Diff:** A diff tool for logs, configs, and large text blocks.",
+        "about_module_log_analyzer": "**📜 Log Analyzer:** Filter and analyze large log files for errors and stats.",
+        "about_module_hash": "**🛡️ Hash Checker:** Quick MD5 & SHA-256 checksum calculation.",
+        "about_module_visual": "**👁️ Visual Check:** Image metadata (EXIF) analysis.",
         "about_module_base64": "**🧬 Base64 Coder:** A tool for encoding and decoding data to/from Base64 format.",
         "about_module_links": "**🔗 Link Tracker:** Traces redirect chains and parses URLs into components, including UTM tags.",
-        "about_module_notes": "**📝 Notes:** A simple notepad for temporarily storing text that persists between sessions.",
+        "about_module_notes": "**📝 Notes:** A temporary buffer to store session data.",
         "about_module_logs": "**🪲 Error Log:** View system logs and errors that occurred during runtime.",
         "about_module_about": "**ℹ️ About:** Information about the version, author, and technologies used.",
         "about_author_header": "👨‍💻 Contact Me",
-        "about_author_desc": "", # No equivalent in the original EN version
+        "about_author_desc": "If you have ideas for improving the software or found a bug - feel free to write!",
         "about_author_email": "yur4enko.danil.18@gmail.com",
         "about_author_telegram": "[@DanilYurc](https://t.me/DanilYurc)",
 
@@ -884,6 +890,11 @@ TRANSLATIONS = {
         "mobile_lab_guide_header": "💡 How to use?",
 
         "qr_hub_guide": "1. **Generator:** Enter any text or link to instantly get a QR code. Useful for quickly transferring URLs to your phone.\n2. **Scanner:** Click 'Start Scanning' to activate the camera. Hold a QR code up to the camera, and its content will be displayed below.",
+        "qr_hub_guide": """This hub works both ways:
+1.  **From PC to Phone (Generator):** Enter text or a link to get a QR code. Scan it with your phone to quickly transfer data.
+2.  **From Phone to PC (Scanner):** If you have a QR code on your phone's screen (e.g., with a token or URL), click 'Start Scanning' and show it to your webcam. This is the fastest way to copy text from a mobile device to your computer wirelessly.
+3.  **Testing:** You can also use the scanner to test QR codes generated by the web application you are testing directly on your PC screen.
+""",
         "qr_hub_clipboard_caption": "Scan to open text in browser for copying",
         "qr_hub_text_too_long": "The text is very long. The QR code may be difficult to scan.",
 
